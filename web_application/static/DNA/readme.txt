@@ -1,0 +1,1 @@
+Please Store Chr1.txt through Chr8.txt in this directory.

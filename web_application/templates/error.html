@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>Alfalfa Database</title>
+{% endblock %}
+
+{% block body %}
+<div><h1>Alfalfa Database</h1></div>
+
+<div>
+    <form action="/ID/" method = 'POST'>
+        Gene ID: 
+        <input type="text" name="content1" id="content1" placeholder="MsG1A10000001">
+        <input type="submit" value="Search gene ID">
+    </form>
+    <p></p>
+    <form action="/annotation/" method = 'POST'>
+        Annotation Keywords: 
+        <input type="text" name="content2" id="content2" placeholder="Heat shock factor">
+        <input type="submit" value="Search annotation">
+    </form>
+    <p></p>
+    <form action="/VCF/" method = 'POST'>
+        Seqid: 
+        <select name="content3" id="content3">
+            <option value="Chr1">Chr1</option>
+            <option value="Chr2">Chr2</option>
+            <option value="Chr3">Chr3</option>
+            <option value="Chr4">Chr4</option>
+            <option value="Chr5">Chr5</option>
+            <option value="Chr6">Chr6</option>
+            <option value="Chr7">Chr7</option>
+            <option value="Chr8">Chr8</option>
+        </select>
+        POS from: 
+        <input type="text" name="content4" id="content4" placeholder="1">
+        to
+        <input type="text" name="content5" id="content5" placeholder="300">
+        <input type="submit" value="Search VCF">
+        (Range <= 3000bp)
+    </form>
+    <p></p>
+    <form action="/" method = 'POST'>
+        <input type="submit" value="Reset">
+    </form>
+</div>
+
+<div><h2>{{ err_msg }}</h2></div>
+
+{% endblock %}

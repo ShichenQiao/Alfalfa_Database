@@ -1,0 +1,1 @@
+SELECT MAX(vcf_ID) FROM vcf;

@@ -1,0 +1,581 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Alfalfa Database</title>
+    <script src="https://cdn.staticfile.org/echarts/4.3.0/echarts.min.js"></script>
+{% endblock %}
+
+{% block body %}
+<div><h1>Alfalfa Database</h1></div>
+
+{% if show_place_holder %}
+    <div>
+        <form action="/ID/" method = 'POST'>
+            Gene ID: 
+            <input type="text" name="content1" id="content1" placeholder="MsG1A10000001">
+            <input type="submit" value="Search gene ID">
+        </form>
+        <p></p>
+        <form action="/annotation/" method = 'POST'>
+            Annotation Keywords: 
+            <input type="text" name="content2" id="content2" placeholder="Heat shock factor">
+            <input type="submit" value="Search annotation">
+        </form>
+        <p></p>
+        <form action="/VCF/" method = 'POST'>
+            Seqid: 
+            <select name="content3" id="content3">
+                <option value="Chr1">Chr1</option>
+                <option value="Chr2">Chr2</option>
+                <option value="Chr3">Chr3</option>
+                <option value="Chr4">Chr4</option>
+                <option value="Chr5">Chr5</option>
+                <option value="Chr6">Chr6</option>
+                <option value="Chr7">Chr7</option>
+                <option value="Chr8">Chr8</option>
+            </select>
+            POS from: 
+            <input type="text" name="content4" id="content4" placeholder="1">
+            to
+            <input type="text" name="content5" id="content5" placeholder="300">
+            <input type="submit" value="Search VCF">
+            (Range <= 3000bp)
+        </form>
+        <p></p>
+        <form action="/" method = 'POST'>
+            <input type="submit" value="Reset">
+        </form>
+    </div>
+    <p></p>
+    <div style="text-align: left; width: 80%;">
+        <h2>Users' Guide:</h2>
+        <h3>1. An valid Gene ID could have 13 (MsG1A10000001), 16 (MsG1A10000001.01), or 20 (MsG1A10000001.01.T01) characters.</h3>
+        <h3>2. When querying about a gene ID, all related genome sequencing, transcriptome sequencing, and annotation data would be shown.</h3>
+        <h3>3. When querying about a keyword, the gene IDs of all annotation records containing that keyword would be found (case insensitive).</h3>
+        <h3>4. To improve page loading time, the range of VCF queries was restricted to be 1 ~ 3000 basepairs.</h3>
+    <div>
+    <p></p>
+{% else %}
+    <div>
+        <form action="/ID/" method = 'POST'>
+            Gene ID: 
+            <input type="text" name="content1" id="content1" value={{ id }}>
+            <input type="submit" value="Search gene ID">
+        </form>
+        <p></p>
+        <form action="/annotation/" method = 'POST'>
+            Annotation Keywords: 
+            <!-- handle spaces within the given keywords -->
+            <script>
+                var jsVar = '{{ keywords }}';
+                var echo = "";
+                for (var i = 0; i < jsVar.length; i++) {
+                    if(jsVar.charAt(i) == '~')
+                        echo += ' ';
+                    else
+                        echo += jsVar.charAt(i);
+                }
+                document.write("<input type='text' name='content2' id='content2' value='" + echo + "'>");
+            </script>
+            <input type="submit" value="Search annotation">
+        </form>
+        <p></p>
+        <form action="/VCF/" method = 'POST'>
+            Seqid: 
+            <select name="content3" id="content3">
+                <script type="text/javascript">
+                    var num = '{{ seqid }}';
+                    for(var i = 1; i < 9; i++) {
+                        if(i.toString() == num)
+                            document.write("<option value='Chr" + i + "' selected>Chr" + i + "</option>");
+                        else
+                            document.write("<option value='Chr" + i + "'>Chr" + i + "</option>");
+                    }
+                </script>
+            </select>
+            POS from: 
+            <input type="text" name="content4" id="content4" value={{ low }}>
+            to
+            <input type="text" name="content5" id="content5" value={{ high }}>
+            <input type="submit" value="Search VCF">
+            (Range <= 3000bp)
+        </form>
+        <p></p>
+        <form action="/" method = 'POST'>
+            <input type="submit" value="Reset">
+        </form>
+    </div>
+{% endif %}
+
+<!-- query mode A, ID search -->
+{% if mode == "A" %}
+    <div><h2>Query Results:</h2></div>
+    <div class="container">
+        <!-- each 16-character gene ID should have at most one set of these info -->
+        {% if have_info %}
+            <table>
+                <thead><th>Annotation Links</th></thead>
+                <tbody><tr><td>
+                    <div class="container" style="text-align: left;">
+                        <h3>Gene ID: {{ gene_ID }}</h3>
+
+                        {% if kegg_list != None %}
+                            <h3>KEGG: 
+                                {% for kegg in kegg_list %}
+                                    <a href="https://www.kegg.jp/entry/K{{ kegg }}" target="_blank">{{ kegg }}</a>;
+                                {% endfor %}
+                            </h3>
+                        {% endif %}
+                        
+                        {% if pathway_list != None %}
+                            <h3>Pathway: 
+                                {% for pathway in pathway_list %}
+                                    <a style="text-decoration: underline;">{{ pathway }}</a>;
+                                {% endfor %}
+                            </h3>
+                        {% endif %}
+
+                        {% if go_list != None %}
+                            <h3>GO: 
+                                {% for go in go_list %}
+                                    <a href="http://amigo.geneontology.org/amigo/term/GO:{{ go }}" target="_blank">{{ go }}</a>;
+                                {% endfor %}
+                            </h3>
+                        {% endif %}
+
+                        {% if interpro_list != None %}
+                            <h3>Interpro: 
+                                {% for interpro in interpro_list %}
+                                    <script type="text/javascript">
+                                        var jsVar = '{{ interpro }}';
+                                        var l = jsVar.length;
+                                        var description = jsVar.substr(0, l - 11)
+                                        var code = jsVar.substr(l - 10, 9)
+                                        document.write(description + "(<a href='https://www.ebi.ac.uk/interpro/entry/InterPro/" + code + "/' target='_blank'>" + code + "</a>);")
+                                    </script>
+                                {% endfor %}
+                            </h3>
+                        {% endif %}
+
+                        {% if pfam_list != None %}
+                            <h3>Pfam: 
+                                {% for pfam in pfam_list %}
+                                    <a href="https://pfam.xfam.org/family/{{ pfam }}" target="_blank">{{ pfam }}</a>;
+                                {% endfor %}
+                            </h3>
+                        {% endif %}
+                    </div> 
+                </td></tr></tbody>
+            </table>
+            <p></p>
+        {% endif %}
+        
+        <!-- each gene ID query should have at most one set of annotations -->
+        {% if show_annotate %}
+            <table>
+                <thead>
+                    <th>Gene ID</th>
+                    <th>db Name</th>
+                    <th>Info 1</th>
+                    <th>Info 2</th>
+                </thead>
+                <tbody>
+                    <!-- combine dable cells of gene ID -->
+                    {% if annotate_span != 0 %}
+                        <td rowspan="{{ annotate_span }}">{{ temp[0] }}</td>
+                    {% endif %}
+                    {% for annotate_info in annotate_infos %}
+                        <tr>
+                            <td>{{ annotate_info[1] }}</td>
+                            <td>{{ annotate_info[2] }}</td>
+                            <td>{{ annotate_info[3] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <p></p>
+        {% endif %}
+        
+        <!-- visualize transcriptome data using echarts -->
+        <div id="main" style="border: 2px solid #aaa; width: 98%; height:500px; background-color: rgb(212, 239, 248); overflow-x: scroll;"></div>
+        <script type="text/javascript">
+            // convert Python list to js array
+            var jsVar = '{{ transcriptome_list }}'.toString();
+            var jsArray = new Array();
+            jsVar = jsVar.substr(1, jsVar.length - 2);
+            while(jsVar.length > 0) {
+                var index = jsVar.indexOf(',');
+                if(index == -1)
+                    break;
+                var temp = jsVar.substr(0, index - 1);
+                jsArray.push(Number(temp));
+                jsVar = jsVar.substr(index + 2);
+            }
+            jsArray.push(Number(jsVar));
+
+            // render the echarts
+            var myChart = echarts.init(document.getElementById('main'));
+            var option = {
+                title: {
+                    text: 'Expression in different Tissues'
+                },
+                tooltip: {},
+                xAxis: {
+                    axisLabel: {
+                        show: true,
+                        interval: 0,
+                        rotate: 45
+                    },
+                    data: ["150_trueleaf_rep1","150_xia_rep1","150_ziye_rep1","fennie_rep1","flower_bud_rep1","flower_rep1","flower_rep2","flower_rep3","flower_rep4", "flower_rep5","flower_rep6","flower_rep7","flower_rep8","germ_seed_rep1", "guojia_rep1","lateral_root_rep1","leaf_bud_rep1","leaf_bud_rep2","leaf_bud_rep3", "main_root_rep1","mature_leaf_rep1","mature_leaf_rep2","mature_leaf_rep3", "MS_trueleaf_rep1","MS_xia_rep1","MS_ziye_rep1","nod_21_rep1","nod_28_rep1", "seed_rep1","stem_branch_rep1","stem_rep1","yige_rep1","yige_rep2","yige_rep3", "young_leaf_rep1","young_leaf_rep2","young_leaf_rep3"]
+                },
+                yAxis: {},
+                grid: {
+                    y2: 80
+                },
+                series: [{
+                    name: 'TPM',
+                    type: 'bar',
+                    data: jsArray
+                }]
+            };
+            myChart.setOption(option);
+        </script>
+        <p></p>
+
+        <!-- each valid 20-character gene ID should have one set of pros_info with complete CDS seq -->
+        <table>
+            {% for pros_info in pros_infos %}
+                <thead><th>Gene ID: {{ pros_info[1] }}</th></thead>
+                <tbody>
+                    <tr><td style="background-color: bisque;">Protein Sequence</td></tr>
+                    <tr><td class="seq">{{ pros_info[2] }}</td></tr>
+                    <tr><td style="background-color: bisque;">Complete CDS Sequence</td></tr>
+                    <tr><td class="seq">{{ pros_info[3] }}</td></tr>
+                </tbody>
+            {% endfor %}
+        </table>
+
+        <!-- each valid 20-character gene ID should have some gff records -->
+        <div><h3>{{ len_gff }} gff entries were found:</h3></div>
+        <table>
+            <thead>
+                <th>Seqid</th>
+                <th>Source</th>
+                <th>Type</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Score</th>
+                <th>Strand</th>
+                <th>Phase</th>
+                <th>Attributes</th>
+            </thead>
+            <tbody>
+                {% for gff in gffs %}
+                    <tr style="background-color: bisque;">
+                        <td>{{ gff[1] }}</td>
+                        <td>{{ gff[2] }}</td>
+                        <td>{{ gff[3] }}</td>
+                        <td>{{ gff[4] }}</td>
+                        <td>{{ gff[5] }}</td>
+                        <td>{{ gff[6] }}</td>
+                        <td>{{ gff[7] }}</td>
+                        <td>{{ gff[8] }}</td>
+                        <td style="overflow-x: scroll;">{{ gff[9] }}</td>
+                    </tr>
+                    <tr><td colspan="10" class="seq">{{ gff[10] }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p></p>
+    <div><h3>Note: Double-clicking on any of the sequences could select the entire sequence for copying purposes.</h3></div>
+    <p></p>
+{% endif %}
+
+<!-- query mode B, keywords search -->
+{% if mode == "B" %}
+    <div><h2>{{ l }} gene IDs were found:</h2></div>
+    <div class="container">
+        <table>
+            <thead>
+                <th>Gene ID</th>
+                <th>db Name</th>
+                <th>Info 1</th>
+                <th>Info 2</th>
+            </thead>
+            <tbody>
+                {% for ans in ans_list %}
+                    <tr>
+                        <!-- combine data cells and add hyper link for each 20-character gene ID found -->
+                        <script type="text/javascript">
+                            var jsVar = '{{ ans[4] }}';
+                            var hyper = "<form action='/ID/' method = 'POST'><input type='text' name='content1' id='content1' value={{ ans[0] }} hidden><input type='submit' value='?'>";
+                            if(jsVar != "0")
+                                document.write("<td rowspan=" + jsVar + ">" + hyper + "{{ ans[0] }}</form></td>");
+                        </script>
+                        <td>{{ ans[1] }}</td>
+                        <td>{{ ans[2] }}</td>
+                        <td>{{ ans[3] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p></p>
+    <div><h3>Note: Clicking on the question mark next to a gene ID would redirect to the query results about that gene ID.</h3></div>
+    <p></p>
+{% endif %}
+
+<!-- query mode C, VCF search -->
+{% if mode == "C" %}
+    <div><h2>Querying the following gene segment:</h2></div>
+    <!-- show information about the selected DNA segment -->
+    <div>
+        <table style="width: 80%;">
+            <thead>
+                <tr>
+                    <th>Seqid</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Total Length</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="background-color: bisque;">
+                    <td>Chr{{ seqid }}</td>
+                    <td>{{ low }}</td>
+                    <td>{{ high }}</td>
+                    <td>{{ length }}bp</td>
+                </tr>
+            </tbody>
+            <thead><tr><th colspan="4">Main DNA Sequence</th></tr></thead>
+            <tbody><tr><td colspan="4" class="seq">{{ DNA }}</td></tr></tbody>
+        </table>
+    </div>
+
+    <!-- visulize VCF records within the query range -->
+    <div><h2>{{ l }} VCF entries were found:</h2></div>
+    <div class="container">
+        <table style="user-select: all;">   <!-- for copying to Excel -->
+            <!-- VCF headers -->
+            <thead>
+                <tr>
+                    <th>POS</th>
+                    <th>REF</th>
+                    <th>ALT</th>
+                    <th>C1</th>
+                    <th>C10</th>
+                    <th>C100</th>
+                    <th>C101</th>
+                    <th>C102</th>
+                    <th>C103</th>
+                    <th>C104</th>
+                    <th>C105</th>
+                    <th>C106</th>
+                    <th>C107</th>
+                    <th>C108</th>
+                    <th>C109</th>
+                    <th>C11</th>
+                    <th>C110</th>
+                    <th>C111</th>
+                    <th>C112</th>
+                    <th>C113</th>
+                    <th>C114</th>
+                    <th>C115</th>
+                    <th>C116</th>
+                    <th>C117</th>
+                    <th>C118</th>
+                    <th>C119</th>
+                    <th>C12</th>
+                    <th>C120</th>
+                    <th>C121</th>
+                    <th>C122</th>
+                    <th>C123</th>
+                    <th>C124</th>
+                    <th>C125</th>
+                    <th>C126</th>
+                    <th>C127</th>
+                    <th>C128</th>
+                    <th>C129</th>
+                    <th>C13</th>
+                    <th>C130</th>
+                    <th>C131</th>
+                    <th>C132</th>
+                    <th>C133</th>
+                    <th>C134</th>
+                    <th>C135</th>
+                    <th>C136</th>
+                    <th>C137</th>
+                    <th>C14</th>
+                    <th>C15</th>
+                    <th>C16</th>
+                    <th>C17</th>
+                    <th>C18</th>
+                    <th>C19</th>
+                    <th>C2</th>
+                    <th>C20</th>
+                    <th>C21</th>
+                    <th>C22</th>
+                    <th>C23</th>
+                    <th>C24</th>
+                    <th>C25</th>
+                    <th>C26</th>
+                    <th>C27</th>
+                    <th>C28</th>
+                    <th>C29</th>
+                    <th>C3</th>
+                    <th>C30</th>
+                    <th>C31</th>
+                    <th>C32</th>
+                    <th>C33</th>
+                    <th>C34</th>
+                    <th>C35</th>
+                    <th>C36</th>
+                    <th>C37</th>
+                    <th>C38</th>
+                    <th>C39</th>
+                    <th>C4</th>
+                    <th>C40</th>
+                    <th>C41</th>
+                    <th>C42</th>
+                    <th>C43</th>
+                    <th>C44</th>
+                    <th>C45</th>
+                    <th>C46</th>
+                    <th>C47</th>
+                    <th>C48</th>
+                    <th>C49</th>
+                    <th>C5</th>
+                    <th>C50</th>
+                    <th>C51</th>
+                    <th>C52</th>
+                    <th>C53</th>
+                    <th>C54</th>
+                    <th>C55</th>
+                    <th>C56</th>
+                    <th>C57</th>
+                    <th>C58</th>
+                    <th>C59</th>
+                    <th>C6</th>
+                    <th>C60</th>
+                    <th>C61</th>
+                    <th>C62</th>
+                    <th>C63</th>
+                    <th>C64</th>
+                    <th>C65</th>
+                    <th>C66</th>
+                    <th>C67</th>
+                    <th>C68</th>
+                    <th>C69</th>
+                    <th>C7</th>
+                    <th>C70</th>
+                    <th>C71</th>
+                    <th>C72</th>
+                    <th>C73</th>
+                    <th>C74</th>
+                    <th>C75</th>
+                    <th>C76</th>
+                    <th>C77</th>
+                    <th>C78</th>
+                    <th>C79</th>
+                    <th>C8</th>
+                    <th>C80</th>
+                    <th>C81</th>
+                    <th>C82</th>
+                    <th>C83</th>
+                    <th>C84</th>
+                    <th>C85</th>
+                    <th>C86</th>
+                    <th>C87</th>
+                    <th>C88</th>
+                    <th>C89</th>
+                    <th>C9</th>
+                    <th>C90</th>
+                    <th>C91</th>
+                    <th>C92</th>
+                    <th>C93</th>
+                    <th>C94</th>
+                    <th>C95</th>
+                    <th>C96</th>
+                    <th>C97</th>
+                    <th>C98</th>
+                    <th>C99</th>
+                    <th>L1</th>
+                    <th>L10</th>
+                    <th>L11</th>
+                    <th>L12</th>
+                    <th>L13</th>
+                    <th>L15</th>
+                    <th>L16</th>
+                    <th>L17</th>
+                    <th>L18</th>
+                    <th>L19</th>
+                    <th>L2</th>
+                    <th>L20</th>
+                    <th>L21</th>
+                    <th>L22</th>
+                    <th>L27</th>
+                    <th>L3</th>
+                    <th>L32</th>
+                    <th>L33</th>
+                    <th>L4</th>
+                    <th>L5</th>
+                    <th>L6</th>
+                    <th>L7</th>
+                    <th>L8</th>
+                    <th>L9</th>
+                    <th>MsREF</th>
+                    <th>zhonglan</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for vcf in vcfs %}
+                    <tr>
+                        <td style="background-color: bisque;">{{ vcf[2] }}</td>
+                        <td style="background-color: rgb(166, 238, 95); overflow-x: scroll;">{{ vcf[3] }}</td>
+                        <td style="background-color: rgb(245, 104, 238); overflow-x: scroll;">{{ vcf[4] }}</td>
+                        {% for x in vcf[5:] %}
+                            <!-- color each table cell accordingly -->
+                            <script type="text/javascript">
+                                var jsVar = '{{ x }}';
+                                if(jsVar == "./.")
+                                    document.write("<td>-</td>");
+                                else {
+                                    var index = jsVar.indexOf("/");
+                                    var REF = '{{ vcf[3] }}';
+                                    if(jsVar.substr(0, index) == REF) {
+                                        if(jsVar.substr(index + 1) == REF)
+                                            document.write("<td style='background-color: rgb(166, 238, 95); overflow-x: scroll;'>" + jsVar + "</td>");
+                                        else
+                                            document.write("<td style='background-color: rgb(255, 172, 17); overflow-x: scroll;'>" + jsVar + "</td>");
+                                    }
+                                    else {
+                                        if(jsVar.substr(index + 1) != REF) {
+                                            if(jsVar.substr(0, index) == jsVar.substr(index + 1))
+                                                document.write("<td style='background-color: rgb(245, 104, 238); overflow-x: scroll;'>" + jsVar + "</td>");
+                                            else
+                                                document.write("<td style='background-color: yellow; overflow-x: scroll;'>" + jsVar + "</td>");
+                                        }
+                                        else
+                                            document.write("<td style='background-color: rgb(255, 172, 17); overflow-x: scroll;'>" + jsVar + "</td>");
+                                    }      
+                                }
+                            </script>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p></p>
+    <div><h3>Legend: 
+        <span style="background-color: rgb(166, 238, 95);">REF gene type</span>;
+        <span style="background-color: rgb(255, 172, 17);">Het with a REF</span>;
+        <span style="background-color: yellow;">Het without a REF</span>;
+        <span style="background-color: rgb(245, 104, 238);">Homo mutation</span>
+    </h3></div>
+    <div><h3>Note: Clicking on any part of the table above could select the entire table so that it could be copied to an Excel spreadsheet.</h3></div>
+    <p></p>
+{% endif %}
+
+{% endblock %}

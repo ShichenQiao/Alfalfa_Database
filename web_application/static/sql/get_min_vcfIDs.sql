@@ -1,0 +1,8 @@
+SELECT CHROM, min(vcf_ID) FROM vcf WHERE CHROM = "Chr1";
+SELECT CHROM, min(vcf_ID) FROM vcf WHERE CHROM = "Chr2";
+SELECT CHROM, min(vcf_ID) FROM vcf WHERE CHROM = "Chr3";
+SELECT CHROM, min(vcf_ID) FROM vcf WHERE CHROM = "Chr4";
+SELECT CHROM, min(vcf_ID) FROM vcf WHERE CHROM = "Chr5";
+SELECT CHROM, min(vcf_ID) FROM vcf WHERE CHROM = "Chr6";
+SELECT CHROM, min(vcf_ID) FROM vcf WHERE CHROM = "Chr7";
+SELECT CHROM, min(vcf_ID) FROM vcf WHERE CHROM = "Chr8";
