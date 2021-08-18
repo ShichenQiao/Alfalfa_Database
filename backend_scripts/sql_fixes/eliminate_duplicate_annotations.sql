@@ -1,0 +1,1 @@
+DELETE FROM annotate_info WHERE rowid NOT IN (SELECT min(rowid) FROM annotate_info GROUP BY ID_full, db_name, info1, info2);

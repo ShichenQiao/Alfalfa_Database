@@ -1,0 +1,15 @@
+INSERT INTO annotate_info(ID_full,db_name,info1,info2) VALUES("MsG1A10000031.01.T01","ProSitePatterns","Lipolytic enzymes "G-D-S-L" family, serine active site.","Lipase, GDSL, active site");
+INSERT INTO annotate_info(ID_full,db_name,info1,info2) VALUES("MsG1A10000036.01.T01","ProSitePatterns","Lipolytic enzymes "G-D-S-L" family, serine active site.","Lipase, GDSL, active site");
+INSERT INTO annotate_info(ID_full,db_name,info1,info2) VALUES("MsG1A10000037.01.T01","ProSitePatterns","Lipolytic enzymes "G-D-S-L" family, serine active site.","Lipase, GDSL, active site");
+INSERT INTO annotate_info(ID_full,db_name,info1,info2) VALUES("MsG1A10000039.01.T01","ProSitePatterns","Lipolytic enzymes "G-D-S-L" family, serine active site.","Lipase, GDSL, active site");
+INSERT INTO annotate_info(ID_full,db_name,info1,info2) VALUES("MsG1A10004515.01.T01","ProSitePatterns","Lipolytic enzymes "G-D-X-G" family, putative histidine active site.","Lipase, GDXG, putative histidine active site");
+INSERT INTO annotate_info(ID_full,db_name,info1,info2) VALUES("MsG1A10004890.01.T01","ProSitePatterns","Lipolytic enzymes "G-D-X-G" family, putative histidine active site.","Lipase, GDXG, putative histidine active site");
+INSERT INTO annotate_info(ID_full,db_name,info1,info2) VALUES("MsG2A10006921.01.T02","ProSitePatterns","Lipolytic enzymes "G-D-S-L" family, serine active site.","Lipase, GDSL, active site");
+INSERT INTO annotate_info(ID_full,db_name,info1,info2) VALUES("MsG2A10010400.01.T01","ProSitePatterns","Lipolytic enzymes "G-D-S-L" family, serine active site.","Lipase, GDSL, active site");
+INSERT INTO annotate_info(ID_full,db_name,info1,info2) VALUES("MsG3A10017750.01.T01","ProSitePatterns","Lipolytic enzymes "G-D-S-L" family, serine active site.","Lipase, GDSL, active site");
+INSERT INTO annotate_info(ID_full,db_name,info1,info2) VALUES("MsG3A10017751.01.T01","ProSitePatterns","Lipolytic enzymes "G-D-S-L" family, serine active site.","Lipase, GDSL, active site");
+INSERT INTO annotate_info(ID_full,db_name,info1,info2) VALUES("MsG6A10034162.01.T01","ProSitePatterns","Lipolytic enzymes "G-D-X-G" family, putative histidine active site.","Lipase, GDXG, putative histidine active site");
+INSERT INTO annotate_info(ID_full,db_name,info1,info2) VALUES("MsG7A10038235.01.T01","ProSitePatterns","Lipolytic enzymes "G-D-X-G" family, putative serine active site.","Lipase, GDXG, putative serine active site");
+INSERT INTO annotate_info(ID_full,db_name,info1,info2) VALUES("MsG7A10040400.01.T01","ProSitePatterns","Lipolytic enzymes "G-D-X-G" family, putative histidine active site.","Lipase, GDXG, putative histidine active site");
+INSERT INTO annotate_info(ID_full,db_name,info1,info2) VALUES("MsG7A10040400.01.T01","ProSitePatterns","Lipolytic enzymes "G-D-X-G" family, putative serine active site.","Lipase, GDXG, putative serine active site");
+INSERT INTO annotate_info(ID_full,db_name,info1,info2) VALUES("MsG8A10045369.01.T01","ProSitePatterns","Lipolytic enzymes "G-D-S-L" family, serine active site.","Lipase, GDSL, active site");
